@@ -1,0 +1,17 @@
+# Virtual environment
+venv/
+
+# API keys - never commit
+.env
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# Runtime data (generated when agent runs)
+data/
+
+# Generated benchmark output
+benchmark_output.txt
+benchmark_report.md
