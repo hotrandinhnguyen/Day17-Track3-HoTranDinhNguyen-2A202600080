@@ -50,7 +50,7 @@ def generate_report(
         "| Metric | With Memory | Without Memory | Delta |",
         "|--------|------------|----------------|-------|",
         f"| Memory Hit Rate | {pct(wmh)} | {pct(nomh)} | **+{pct(wmh-nomh)}** |",
-        f"| Avg Response Time (s) | {fmt(wmt)} | {fmt(nomt)} | {fmt(nomt-wmt):+} |",
+        f"| Avg Response Time (s) | {fmt(wmt)} | {fmt(nomt)} | {nomt-wmt:+.2f} |",
         f"| Avg Context Size (chars) | {wmc:.0f} | {nomc:.0f} | {wmc-nomc:+.0f} |",
         f"| Keyword Relevance | {wmr:.3f} | {nomr:.3f} | {wmr-nomr:+.3f} |",
         f"| Total Tokens Used | {tokens_with:,} | {tokens_without:,} | {tokens_without-tokens_with:+,} |",
@@ -72,7 +72,7 @@ def generate_report(
         r = conv_map_wm.get(conv.id)
         if r:
             lines.append(
-                f"| {conv.id} | {conv.name} | {conv.memory_test_type} "
+                f"| {conv.id} | {conv.name} | {conv.group} "
                 f"| {pct(r.memory_hit_rate)} | {r.avg_context_len:.0f} "
                 f"| {r.avg_response_time:.2f}s |"
             )
@@ -88,7 +88,7 @@ def generate_report(
         r = conv_map_nm.get(conv.id)
         if r:
             lines.append(
-                f"| {conv.id} | {conv.name} | {conv.memory_test_type} "
+                f"| {conv.id} | {conv.name} | {conv.group} "
                 f"| {pct(r.memory_hit_rate)} | {r.avg_context_len:.0f} "
                 f"| {r.avg_response_time:.2f}s |"
             )

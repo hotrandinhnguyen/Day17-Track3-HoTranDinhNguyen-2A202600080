@@ -1,53 +1,72 @@
 """Memory router: detect query intent and choose the right memory backends."""
+import re
 from enum import Enum
 from typing import List, Tuple
 
-# ── keyword lists ──────────────────────────────────────────────────────────────
+# ── keyword lists ─────────────────────────────────────────────────────────────
+# Use word-boundary patterns to avoid substring false positives
+# e.g. "thích" must not match inside "giải thích"
 
-_PREFERENCE_KW = [
-    "thích", "không thích", "prefer", "like", "dislike", "want", "don't want",
-    "favorite", "yêu thích", "ghét", "muốn", "không muốn", "ưa", "sở thích",
+_PREFERENCE_PATTERNS = [
+    r"\btôi thích\b", r"\bthich\b", r"\btôi thích\b", r"\byêu thích\b",
+    r"\bkhông thích\b", r"\bghét\b", r"\bsở thích\b",
+    r"\bprefer\b", r"\blike\b", r"\bdislike\b",
+    r"\bmuốn\b", r"\bkhông muốn\b",
+    r"\bdị ứng\b", r"\bdi ung\b",          # allergy = user profile fact
+    r"\btên (tôi|là)\b", r"\btoi ten\b",   # name = user profile fact
 ]
 
-_EPISODIC_KW = [
-    "nhớ", "remember", "recall", "lần trước", "trước đó", "trước đây",
-    "hôm qua", "tuần trước", "last time", "previously", "before", "mentioned",
-    "đã nói", "đã hỏi", "từng", "bị confused", "episode",
+_EPISODIC_PATTERNS = [
+    r"\bnhớ\b", r"\bremember\b", r"\brecall\b",
+    r"\blần trước\b", r"\btrước đó\b", r"\btrước đây\b",
+    r"\bhôm qua\b", r"\btuần trước\b", r"\blast time\b",
+    r"\bpreviously\b", r"\bmentioned\b",
+    r"\bđã (nói|hỏi|học)\b", r"\btừng\b",
+    r"\bbị confused\b", r"\btrước đây tôi\b",
 ]
 
-_SEMANTIC_KW = [
-    "tương tự", "similar", "giống", "liên quan", "related",
-    "tìm kiếm", "search", "find", "lookup", "về chủ đề",
+_SEMANTIC_PATTERNS = [
+    r"\btương tự\b", r"\bsimilar\b", r"\bgiống\b",
+    r"\bliên quan\b", r"\brelated\b",
+    r"\btìm (kiếm|cho tôi)\b", r"\bsearch\b", r"\bfind\b",
+    r"\bvề chủ đề\b", r"\bnội dung tương tự\b",
 ]
 
-_FACTUAL_KW = [
-    "là gì", "what is", "define", "explain", "how to", "why", "when",
-    "nghĩa là", "giải thích", "cách", "làm thế nào", "tại sao",
+_FACTUAL_PATTERNS = [
+    r"\blà gì\b", r"\bwhat is\b", r"\bdefine\b",
+    r"\bexplain\b", r"\bhow to\b", r"\bwhy\b",
+    r"\bnghĩa là\b", r"\bgiải thích\b", r"\bcách\b",
+    r"\blàm thế nào\b", r"\btại sao\b",
+    r"\bso sánh\b", r"\bkhác nhau\b", r"\bhoạt động\b",
 ]
 
 
-# ── intent enum ────────────────────────────────────────────────────────────────
+def _score(patterns: List[str], text: str) -> int:
+    return sum(1 for p in patterns if re.search(p, text))
+
+
+# ── intent enum ───────────────────────────────────────────────────────────────
 
 class MemoryIntent(Enum):
-    USER_PREFERENCE = "user_preference"
-    FACTUAL_RECALL = "factual_recall"
+    USER_PREFERENCE  = "user_preference"
+    FACTUAL_RECALL   = "factual_recall"
     EXPERIENCE_RECALL = "experience_recall"
-    SEMANTIC_SEARCH = "semantic_search"
-    GENERAL = "general"
+    SEMANTIC_SEARCH  = "semantic_search"
+    GENERAL          = "general"
 
 
-# ── router ─────────────────────────────────────────────────────────────────────
+# ── router ────────────────────────────────────────────────────────────────────
 
 class MemoryRouter:
-    """Routes a query to the most relevant memory backends."""
+    """Routes a query to the most relevant memory backends using regex patterns."""
 
     def detect_intent(self, query: str) -> Tuple[MemoryIntent, float]:
         q = query.lower()
         scores = {
-            MemoryIntent.USER_PREFERENCE: sum(kw in q for kw in _PREFERENCE_KW),
-            MemoryIntent.EXPERIENCE_RECALL: sum(kw in q for kw in _EPISODIC_KW),
-            MemoryIntent.SEMANTIC_SEARCH: sum(kw in q for kw in _SEMANTIC_KW),
-            MemoryIntent.FACTUAL_RECALL: sum(kw in q for kw in _FACTUAL_KW),
+            MemoryIntent.USER_PREFERENCE:   _score(_PREFERENCE_PATTERNS, q),
+            MemoryIntent.EXPERIENCE_RECALL: _score(_EPISODIC_PATTERNS,   q),
+            MemoryIntent.SEMANTIC_SEARCH:   _score(_SEMANTIC_PATTERNS,   q),
+            MemoryIntent.FACTUAL_RECALL:    _score(_FACTUAL_PATTERNS,    q),
             MemoryIntent.GENERAL: 0,
         }
         best = max(scores, key=scores.get)
@@ -56,13 +75,12 @@ class MemoryRouter:
         return best, min(scores[best] / 3.0, 1.0)
 
     def get_backends(self, intent: MemoryIntent) -> List[str]:
-        """Return ordered backend names for the given intent."""
         mapping = {
-            MemoryIntent.USER_PREFERENCE:  ["long_term", "short_term"],
-            MemoryIntent.FACTUAL_RECALL:   ["long_term", "semantic", "short_term"],
+            MemoryIntent.USER_PREFERENCE:   ["long_term", "short_term"],
+            MemoryIntent.FACTUAL_RECALL:    ["long_term", "semantic", "short_term"],
             MemoryIntent.EXPERIENCE_RECALL: ["episodic", "short_term"],
-            MemoryIntent.SEMANTIC_SEARCH:  ["semantic", "episodic"],
-            MemoryIntent.GENERAL:          ["short_term", "long_term", "episodic"],
+            MemoryIntent.SEMANTIC_SEARCH:   ["semantic", "episodic"],
+            MemoryIntent.GENERAL:           ["short_term", "long_term", "episodic"],
         }
         return mapping.get(intent, ["short_term"])
 

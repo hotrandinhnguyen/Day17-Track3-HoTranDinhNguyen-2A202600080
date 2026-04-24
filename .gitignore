@@ -9,9 +9,14 @@ __pycache__/
 *.pyc
 *.pyo
 
-# Runtime data (generated when agent runs)
-data/
+# Chroma binary files (large, not needed for review)
+data/*/chroma_db/
 
-# Generated benchmark output
-benchmark_output.txt
-benchmark_report.md
+# Test/temp data runs
+data/t1/
+data/t2/
+data/t2/
+data/test/
+data/test2/
+data/mock_test/
+data/demo/

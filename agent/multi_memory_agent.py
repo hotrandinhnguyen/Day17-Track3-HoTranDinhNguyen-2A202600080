@@ -53,15 +53,19 @@ class MultiMemoryAgent:
         use_memory: bool = True,
         api_key: Optional[str] = None,
         model: str = "gpt-4o-mini",
+        mock_mode: bool = False,
     ):
         self.user_id = user_id
         self.session_id = session_id or f"session_{int(time.time())}"
         self.use_memory = use_memory
         self.model = model
+        self.mock_mode = mock_mode
         self._total_input_tokens = 0
         self._total_output_tokens = 0
 
-        self._client = OpenAI(api_key=api_key or os.environ.get("OPENAI_API_KEY"))
+        self._client = None if mock_mode else OpenAI(
+            api_key=api_key or os.environ.get("OPENAI_API_KEY")
+        )
 
         self.short_term = ShortTermMemory(max_turns=10)
         if use_memory:
@@ -225,6 +229,9 @@ class MultiMemoryAgent:
             messages.append({"role": msg["role"], "content": msg["content"]})
         messages.append({"role": "user", "content": state["query"]})
 
+        if self.mock_mode:
+            return {"response": self._mock_response(state)}
+
         completion = self._client.chat.completions.create(
             model=self.model,
             messages=messages,
@@ -234,6 +241,25 @@ class MultiMemoryAgent:
         self._total_input_tokens  += completion.usage.prompt_tokens
         self._total_output_tokens += completion.usage.completion_tokens
         return {"response": completion.choices[0].message.content}
+
+    def _mock_response(self, state: MemoryState) -> str:
+        """Template response that reflects what memory was loaded — no API needed."""
+        profile = state.get("user_profile", {})
+        episodes = state.get("episodes", [])
+        hits = state.get("semantic_hits", [])
+        query = state.get("query", "")
+
+        parts: List[str] = [f"[MOCK] Query: {query!r}"]
+        if profile:
+            parts.append(f"Profile loaded: {profile}")
+        if episodes:
+            parts.append(f"Episodic memory: {len(episodes)} episode(s) retrieved")
+        if hits:
+            parts.append(f"Semantic hits: {len(hits)} result(s) retrieved")
+        if not profile and not episodes and not hits:
+            parts.append("No memory context (new user or memory disabled)")
+        parts.append(f"Intent detected: {state.get('intent','general')} | Budget: {state.get('memory_budget',0)} tokens")
+        return " | ".join(parts)
 
     # ── node 4: save_memory ───────────────────────────────────────────────────
 
