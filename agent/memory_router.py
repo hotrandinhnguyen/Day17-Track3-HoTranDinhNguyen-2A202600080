@@ -8,35 +8,39 @@ from typing import List, Tuple
 # e.g. "thích" must not match inside "giải thích"
 
 _PREFERENCE_PATTERNS = [
-    r"\btôi thích\b", r"\bthich\b", r"\btôi thích\b", r"\byêu thích\b",
-    r"\bkhông thích\b", r"\bghét\b", r"\bsở thích\b",
+    r"\btôi thích\b", r"\byêu thích\b", r"\bkhông thích\b",
+    r"\b(toi|tôi|ban|bạn)\s+thich\b",      # "tôi thich X" — NOT "giai thich"
+    r"\bghét\b", r"\bsở thích\b",
     r"\bprefer\b", r"\blike\b", r"\bdislike\b",
     r"\bmuốn\b", r"\bkhông muốn\b",
-    r"\bdị ứng\b", r"\bdi ung\b",          # allergy = user profile fact
-    r"\btên (tôi|là)\b", r"\btoi ten\b",   # name = user profile fact
+    r"\bdị ứng\b", r"\bdi ung\b",
+    r"\btên (tôi|là)\b", r"\btoi ten\b",
 ]
 
 _EPISODIC_PATTERNS = [
     r"\bnhớ\b", r"\bremember\b", r"\brecall\b",
     r"\blần trước\b", r"\btrước đó\b", r"\btrước đây\b",
+    r"\btruoc day\b", r"\btruoc do\b", r"\blan truoc\b",
     r"\bhôm qua\b", r"\btuần trước\b", r"\blast time\b",
     r"\bpreviously\b", r"\bmentioned\b",
-    r"\bđã (nói|hỏi|học)\b", r"\btừng\b",
-    r"\bbị confused\b", r"\btrước đây tôi\b",
+    r"\bđã (nói|hỏi|học)\b", r"\bda (noi|hoi|hoc)\b",
+    r"\btừng\b", r"\btung\b",
+    r"\bbị confused\b", r"\bbi confused\b",
 ]
 
 _SEMANTIC_PATTERNS = [
-    r"\btương tự\b", r"\bsimilar\b", r"\bgiống\b",
-    r"\bliên quan\b", r"\brelated\b",
-    r"\btìm (kiếm|cho tôi)\b", r"\bsearch\b", r"\bfind\b",
-    r"\bvề chủ đề\b", r"\bnội dung tương tự\b",
+    r"\btương tự\b", r"\btuong tu\b", r"\bsimilar\b", r"\bgiống\b",
+    r"\bliên quan\b", r"\blien quan\b", r"\brelated\b",
+    r"\btìm (kiếm|cho tôi)\b", r"\btim\s+(kiem|noi dung|cho)\b",
+    r"\bsearch\b", r"\bfind\b",
+    r"\bvề chủ đề\b", r"\bnội dung tương tự\b", r"\bnoi dung tuong tu\b",
 ]
 
 _FACTUAL_PATTERNS = [
     r"\blà gì\b", r"\bwhat is\b", r"\bdefine\b",
     r"\bexplain\b", r"\bhow to\b", r"\bwhy\b",
-    r"\bnghĩa là\b", r"\bgiải thích\b", r"\bcách\b",
-    r"\blàm thế nào\b", r"\btại sao\b",
+    r"\bnghĩa là\b", r"\bgiải thích\b", r"\bgiai thich\b",
+    r"\bcách\b", r"\blàm thế nào\b", r"\btại sao\b",
     r"\bso sánh\b", r"\bkhác nhau\b", r"\bhoạt động\b",
 ]
 

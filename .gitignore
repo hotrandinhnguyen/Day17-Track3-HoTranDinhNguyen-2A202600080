@@ -9,12 +9,16 @@ __pycache__/
 *.pyc
 *.pyo
 
-# Chroma binary files (large, not needed for review)
-data/*/chroma_db/
-
-# Test/temp data runs
+# Only ignore test/temp chroma data
 data/t1/
 data/t2/
+data/test/
+data/test2/
+data/mock_test/
+data/demo/
+
+# Temp test data
+data/t1/
 data/t2/
 data/test/
 data/test2/
