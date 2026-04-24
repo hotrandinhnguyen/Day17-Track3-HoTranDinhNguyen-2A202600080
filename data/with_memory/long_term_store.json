@@ -1,15 +1,16 @@
 {
   "user:bench_user:facts": {
     "value": {
-      "name": "Gì"
+      "name": "Minh",
+      "goal": "backend developer"
     },
     "timestamp": 1777008623.2451246
   },
   "user:bench_user:preferences": {
     "value": {
-      "response_style": "concise",
-      "preferred_language": "typescript",
-      "allergy": "đậu nành"
+      "preferred_language": "python",
+      "allergy": "đậu nành",
+      "response_style": "concise"
     },
     "timestamp": 1777008802.9737735
   }
